@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whatsapp</title>
+</head>
+
+<body>
+    <label>log in</label><input type="text" placeholder="enter name" id="loginField">
+    <button onclick="login()">login</button>
+
+    <label>add contact</label><input type="text" placeholder="name" id="contectInput">
+    <button onclick="addContact()">add</button>
+
+    <select name="contact" id="selectContact">
+    </select>
+
+    <input type="text" placeholder="message..." id="msgInput">
+    <button onclick="sendMsg()">send</button>
+
+    <div id="msgContainer"></div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const userSocket = io("/")
+        let user = '';
+        const loginField = document.querySelector("#loginField")
+        const contectInput = document.querySelector("#contectInput")
+        const selectElement = document.querySelector("#selectContact")
+        const msgContainer = document.querySelector("#msgContainer")
+        const msgInput = document.querySelector("#msgInput")
+        const groupInoutField = document.querySelector("#groupInoutField")
+
+        // for log in
+        function login(){
+            user = loginField.value
+            userSocket.emit("log-in", loginField.value)
+        }
+
+        userSocket.on("log-in", (metaData)=>{
+            console.log(`login successfull ${metaData.name} \nyour id is: ${metaData.id}`)
+        })
+
+        // for adding contact
+        function addContact(){
+            userSocket.emit("contact-added", {name: user, contactName: contectInput.value})
+        }
+
+        userSocket.on("contact-added",(metaData)=>{
+            const option = document.createElement("option")
+            option.value = metaData.name
+            option.innerHTML = metaData.name
+            selectElement.appendChild(option)
+        })
+
+        userSocket.on("contact-error", (err)=>{
+            alert(err)
+        })
+
+        function sendMsg(){
+            const msg = msgInput.value
+            const contact = selectElement.value
+            userSocket.emit("msg", {user, contact, msg})
+        }
+
+        userSocket.on("msg", (metaData)=>{
+            // console.log(metaData);
+            addMsg(metaData)
+        })
+        
+        function addMsg (metaData){
+            const msgList = document.createElement("div")
+            // const msgId = document.createElement("span") 
+            const message = document.createElement("span")  
+            // msgId.innerHTML = metaData.id + " "
+            message.innerHTML = metaData.msg
+            // msgList.appendChild(msgId)
+            msgList.appendChild(message)
+            msgContainer.appendChild(msgList)
+        }
+    </script>
+</body>
+
+</html>
