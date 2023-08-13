@@ -61,6 +61,7 @@
         function sendMsg(){
             const msg = msgInput.value
             const contact = selectElement.value
+            addMsg({msg})
             userSocket.emit("msg", {user, contact, msg})
         }
 
